@@ -42,8 +42,12 @@ class AccountController extends Controller
         }
         try {
             $userId  = Customer::addNewRecord($request->all());
-            $this->assignDiscountToUser($userId);
-            return response()->json(['status', 'registered successfully'], 200);
+            $dis = $this->assignDiscountToUser($userId);
+            return response()->json([
+                'status' => 200,
+                "message" => "you have registred successfully",
+                "discount_offred" => $dis
+            ], 200);
         } catch (Exception $e) {
             return response()->json([
                 "error" => "could_not_register",
@@ -60,11 +64,15 @@ class AccountController extends Controller
     public function assignDiscountToUser($userId)
     {
         try {
+            $disVal = 0;
             $discount  = Discount::getRandomDiscount();
             if ($discount) {
                 Customer::updateCustomerDiscount(['discount_id' => $discount->id], $userId);
                 Discount::updateDiscountGivenNo(['times_of_given' => (int)$discount->times_of_given - 1], $discount->id);
+                $disVal = $discount->discount_value;
+                return $disVal;
             }
+            return $disVal;
         } catch (Exception $e) {
             return response()->json([
                 "error" => "Sorry Some Things went wrong",
